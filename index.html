@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>La Table Junot</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --bg: #faf9f6;
+      --card: #ffffff;
+      --accent: #e07a5f;
+      --accent-light: #f2cc8f;
+      --accent-dark: #c45a3c;
+      --text: #2d3436;
+      --text-light: #636e72;
+      --text-muted: #b2bec3;
+      --border: #eee;
+      --lunch: #81b29a;
+      --lunch-light: #e8f5ee;
+      --dinner: #e07a5f;
+      --dinner-light: #fdeee9;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --tab-height: 64px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--tab-height) + 20px);
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250, 249, 246, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), #3d405b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    /* Bottom Tab Bar */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--tab-height);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      z-index: 200;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 8px 16px;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn svg { width: 26px; height: 26px; }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active svg { stroke: var(--accent); }
+
+    /* Pages */
+    .page { display: none; padding: 16px 16px 0; }
+    .page.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Week Navigation */
+    .week-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+    .week-nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    .week-nav-btn:active { transform: scale(0.92); }
+    .week-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .week-label span { font-weight: 400; color: var(--text-light); font-size: 13px; display: block; text-align: center; }
+    .week-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    }
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+    .btn-danger {
+      background: #ff6b6b;
+      color: white;
+    }
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 8px;
+    }
+
+    /* Day Cards */
+    .day-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .day-header {
+      padding: 12px 16px 8px;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .day-header .day-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-light);
+    }
+    .meal-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      gap: 10px;
+      border-bottom: 1px solid #f5f5f5;
+      min-height: 48px;
+    }
+    .meal-row:last-child { border-bottom: none; }
+    .meal-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      min-width: 42px;
+      text-align: center;
+    }
+    .meal-badge.lunch { background: var(--lunch-light); color: var(--lunch); }
+    .meal-badge.dinner { background: var(--dinner-light); color: var(--dinner); }
+    .meal-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      background: transparent;
+      padding: 4px 0;
+    }
+    .meal-input::placeholder { color: var(--text-muted); }
+    .meal-input.empty { font-style: italic; color: var(--text-muted); }
+    .clear-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: #f1f1f1;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .meal-row:hover .clear-btn,
+    .meal-row:focus-within .clear-btn { opacity: 1; }
+
+    /* Autocomplete */
+    .autocomplete-wrap { position: relative; flex: 1; }
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: -16px;
+      right: -16px;
+      background: var(--card);
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      z-index: 50;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .autocomplete-list.show { display: block; }
+    .autocomplete-item {
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f8f8f8;
+      transition: background 0.1s;
+    }
+    .autocomplete-item:hover,
+    .autocomplete-item.highlighted { background: var(--accent-light); }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-match { font-weight: 700; color: var(--accent); }
+
+    /* Meals Page */
+    .meals-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .search-box {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--card);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .add-meal-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .add-meal-btn:active { transform: scale(0.92); }
+
+    .meal-list { list-style: none; }
+    .meal-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+    .meal-list-item:active { transform: scale(0.98); }
+    .meal-name { flex: 1; }
+    .meal-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: #f5f5f5;
+      padding: 3px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+    }
+    .delete-meal-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-left: 8px;
+      transition: all 0.2s;
+    }
+    .delete-meal-btn:hover { background: #ffe0e0; color: #ff6b6b; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 300;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; animation: fadeInOverlay 0.2s; }
+    @keyframes fadeInOverlay { from { opacity: 0; } }
+    .modal {
+      background: var(--card);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 500px;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } }
+    .modal h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    .modal input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .modal input:focus { border-color: var(--accent); }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 15px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--tab-height) + 20px);
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      background: var(--text);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 400;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; }
+
+    /* Settings / Utils */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .stat-value { font-size: 28px; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+    @media (min-width: 600px) {
+      .page { max-width: 540px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>La Table Junot</h1>
+  <div class="header-sub" id="headerSub">Planning des repas</div>
+</div>
+
+<!-- Planning Page -->
+<div class="page active" id="pagePlanning">
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="changeWeek(-1)" aria-label="Semaine précédente">&#8249;</button>
+    <div class="week-label" id="weekLabel">Semaine 1<span id="weekDates"></span></div>
+    <button class="week-nav-btn" onclick="changeWeek(1)" aria-label="Semaine suivante">&#8250;</button>
+  </div>
+  <div class="week-actions">
+    <button class="btn btn-primary" onclick="addNewWeek()">+ Nouvelle semaine</button>
+    <button class="btn btn-secondary" onclick="confirmDeleteWeek()">Supprimer</button>
+  </div>
+  <div id="weekContent"></div>
+</div>
+
+<!-- Meals Page -->
+<div class="page" id="pageMeals">
+  <div class="meals-header">
+    <input type="text" class="search-box" id="mealSearch" placeholder="Rechercher un repas..." oninput="filterMeals()">
+    <button class="add-meal-btn" onclick="openAddMealModal()" aria-label="Ajouter un repas">+</button>
+  </div>
+  <ul class="meal-list" id="mealList"></ul>
+</div>
+
+<!-- Settings Page -->
+<div class="page" id="pageSettings">
+  <div class="stats" id="statsGrid"></div>
+  <div style="margin-bottom: 16px;">
+    <button class="btn btn-secondary" onclick="exportData()" style="width: 100%; margin-bottom: 8px;">Exporter les donn&eacute;es</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()" style="width: 100%; margin-bottom: 8px;">Importer des donn&eacute;es</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-danger" onclick="confirmReset()" style="width: 100%;">R&eacute;initialiser</button>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('planning')" id="tabPlanning">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Planning
+  </button>
+  <button class="tab-btn" onclick="switchTab('meals')" id="tabMeals">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    Repas
+  </button>
+  <button class="tab-btn" onclick="switchTab('settings')" id="tabSettings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Options
+  </button>
+</nav>
+
+<!-- Modal for adding meals -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <h3 id="modalTitle">Ajouter un repas</h3>
+    <input type="text" id="modalInput" placeholder="Nom du repas..." onkeydown="if(event.key==='Enter') saveModal()">
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveModal()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+// ===== Firebase =====
+firebase.initializeApp({
+  apiKey: "AIzaSyAw3CC3FQp-ScHDdDWpmyA2gPsUFTXJfFY",
+  authDomain: "perchoir-menu.firebaseapp.com",
+  databaseURL: "https://perchoir-menu-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "perchoir-menu",
+  storageBucket: "perchoir-menu.firebasestorage.app",
+  messagingSenderId: "451594615826",
+  appId: "1:451594615826:web:d097e8faa488317f3baccb"
+});
+const db = firebase.database();
+const dbRef = db.ref('table-junot');
+
+// ===== Data Layer =====
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const MEAL_TYPES = ['midi', 'soir'];
+const MONTHS_SHORT = ['janv.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+
+function getMonday(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  date.setDate(diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function formatDayDate(startDate, dayIndex) {
+  const d = new Date(startDate);
+  d.setDate(d.getDate() + dayIndex);
+  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+}
+
+function formatWeekRange(startDate) {
+  const start = new Date(startDate);
+  const end = new Date(startDate);
+  end.setDate(end.getDate() + 6);
+  return `${start.getDate()} ${MONTHS_SHORT[start.getMonth()]} - ${end.getDate()} ${MONTHS_SHORT[end.getMonth()]}`;
+}
+
+const DEFAULT_MEALS = [
+  "Aubergines houmous chèvre", "Bagel", "Boudin pommes salade",
+  "Camembert maquereau salade", "Cassegrain pâtes mozza", "Coquillette jambon",
+  "Cordon bleu soupe salade", "Crevette riz avocat", "Crevettes tagliatelles",
+  "Croque", "Gnocchis", "Guiche", "Guiche salade", "Lentilles",
+  "Oeufs brouillés lard salade", "Pâtes au thon", "Pâtes épinard",
+  "Pâtes FU lard", "Pâtes sauce tomate FU", "Pâtes saumon champignons",
+  "Poisson purée", "Poisson purée salade avocat", "Porc purée",
+  "Steak frites salade", "Tarte ricotta tomates"
+];
+
+function buildDefaultData() {
+  const d = { meals: [...DEFAULT_MEALS], weeks: [] };
+  const baseMonday = getMonday(new Date());
+  baseMonday.setDate(baseMonday.getDate() - 21);
+  d.weeks = [
+    {startDate: new Date(baseMonday).toISOString(), meals: {"Lundi-midi":"","Lundi-soir":"Gnocchis","Mardi-midi":"Oeufs brouillés lard salade","Mardi-soir":"Aubergines houmous chèvre","Mercredi-midi":"","Mercredi-soir":"","Jeudi-midi":"Guiche","Jeudi-soir":"Camembert maquereau salade","Vendredi-midi":"","Vendredi-soir":"Croque","Samedi-midi":"Pâtes épinard","Samedi-soir":"Coquillette jambon","Dimanche-midi":"Lentilles","Dimanche-soir":"Pâtes au thon"}},
+    {startDate: new Date(baseMonday.getTime() + 7*86400000).toISOString(), meals: {"Lundi-midi":"","Lundi-soir":"","Mardi-midi":"Cordon bleu soupe salade","Mardi-soir":"","Mercredi-midi":"Tarte ricotta tomates","Mercredi-soir":"Bagel","Jeudi-midi":"","Jeudi-soir":"Poisson purée salade avocat","Vendredi-midi":"Crevette riz avocat","Vendredi-soir":"Pâtes épinard","Samedi-midi":"Poisson purée salade avocat","Samedi-soir":"Cassegrain pâtes mozza","Dimanche-midi":"Pâtes sauce tomate FU","Dimanche-soir":"Boudin pommes salade"}},
+    {startDate: new Date(baseMonday.getTime() + 14*86400000).toISOString(), meals: {"Lundi-midi":"Boudin pommes salade","Lundi-soir":"Oeufs brouillés lard salade","Mardi-midi":"","Mardi-soir":"Guiche salade","Mercredi-midi":"Bagel","Mercredi-soir":"","Jeudi-midi":"","Jeudi-soir":"Poisson purée salade avocat","Vendredi-midi":"Pâtes saumon champignons","Vendredi-soir":"Poisson purée","Samedi-midi":"Crevettes tagliatelles","Samedi-soir":"Pâtes épinard","Dimanche-midi":"Pâtes au thon","Dimanche-soir":"Porc purée"}},
+    {startDate: new Date(baseMonday.getTime() + 21*86400000).toISOString(), meals: {"Lundi-midi":"","Lundi-soir":"","Mardi-midi":"","Mardi-soir":"","Mercredi-midi":"","Mercredi-soir":"","Jeudi-midi":"Steak frites salade","Jeudi-soir":"Poisson purée","Vendredi-midi":"Pâtes saumon champignons","Vendredi-soir":"","Samedi-midi":"","Samedi-soir":"Pâtes FU lard","Dimanche-midi":"Poisson purée","Dimanche-soir":"Pâtes saumon champignons"}}
+  ];
+  return d;
+}
+
+// Shared data (synced via Firebase)
+let data = { meals: [], weeks: [] };
+// Local-only: which week each user is viewing
+let currentWeek = 0;
+let firebaseReady = false;
+let suppressSync = false;
+
+function saveData() {
+  // Write shared data to Firebase (meals + weeks only, not currentWeek)
+  suppressSync = true;
+  dbRef.set({ meals: data.meals, weeks: data.weeks }).then(() => {
+    suppressSync = false;
+  }).catch(() => { suppressSync = false; });
+}
+
+// Listen for real-time changes from Firebase
+dbRef.on('value', (snapshot) => {
+  if (suppressSync) return;
+  const val = snapshot.val();
+  if (!val) {
+    // DB is empty — seed it with defaults
+    data = buildDefaultData();
+    dbRef.set({ meals: data.meals, weeks: data.weeks });
+    firebaseReady = true;
+    renderCurrentView();
+    return;
+  }
+  // Firebase arrays may have holes (null entries) — clean them
+  data.meals = val.meals ? val.meals.filter(Boolean) : [];
+  data.weeks = val.weeks ? val.weeks.filter(Boolean).map(w => ({
+    startDate: w.startDate || '',
+    meals: w.meals || {}
+  })) : [];
+  // Clamp currentWeek
+  if (currentWeek >= data.weeks.length) {
+    currentWeek = Math.max(0, data.weeks.length - 1);
+  }
+  if (!firebaseReady) {
+    firebaseReady = true;
+    showToast('Connecté — données synchronisées');
+  }
+  renderCurrentView();
+});
+
+function renderCurrentView() {
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) { renderWeek(); return; }
+  if (activePage.id === 'pagePlanning') renderWeek();
+  else if (activePage.id === 'pageMeals') renderMeals();
+  else if (activePage.id === 'pageSettings') renderStats();
+}
+
+// ===== Tab Navigation =====
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  if (tab === 'planning') {
+    document.getElementById('pagePlanning').classList.add('active');
+    document.getElementById('tabPlanning').classList.add('active');
+    document.getElementById('headerSub').textContent = 'Planning des repas';
+    renderWeek();
+  } else if (tab === 'meals') {
+    document.getElementById('pageMeals').classList.add('active');
+    document.getElementById('tabMeals').classList.add('active');
+    document.getElementById('headerSub').textContent = data.meals.length + ' repas disponibles';
+    renderMeals();
+  } else if (tab === 'settings') {
+    document.getElementById('pageSettings').classList.add('active');
+    document.getElementById('tabSettings').classList.add('active');
+    document.getElementById('headerSub').textContent = 'Paramètres';
+    renderStats();
+  }
+}
+
+// ===== Week Rendering =====
+function renderWeek() {
+  const container = document.getElementById('weekContent');
+  if (data.weeks.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>Aucune semaine. Ajoutez-en une !</p></div>';
+    document.getElementById('weekLabel').innerHTML = 'Aucune semaine';
+    return;
+  }
+  if (currentWeek >= data.weeks.length) currentWeek = data.weeks.length - 1;
+  const week = data.weeks[currentWeek];
+  const range = formatWeekRange(week.startDate);
+  document.getElementById('weekLabel').innerHTML = `${range} <span>${currentWeek + 1} sur ${data.weeks.length}</span>`;
+
+  // Track which input is focused so we don't disrupt typing
+  const focused = document.activeElement;
+  const focusedKey = focused && focused.dataset && focused.dataset.key ? focused.dataset.key : null;
+  const focusedPos = focusedKey ? focused.selectionStart : null;
+
+  let html = '';
+  DAYS.forEach((day, dayIndex) => {
+    const dayDate = formatDayDate(week.startDate, dayIndex);
+    html += `<div class="day-card">
+      <div class="day-header"><div class="day-icon"></div>${day} ${dayDate}</div>`;
+    MEAL_TYPES.forEach(type => {
+      const key = `${day}-${type}`;
+      const val = week.meals[key] || '';
+      const label = type === 'midi' ? 'Midi' : 'Soir';
+      const cls = type === 'midi' ? 'lunch' : 'dinner';
+      html += `<div class="meal-row">
+        <span class="meal-badge ${cls}">${label}</span>
+        <div class="autocomplete-wrap">
+          <input class="meal-input" type="text" value="${escapeHtml(val)}"
+            placeholder="Choisir un repas..."
+            data-key="${key}"
+            onfocus="showAutocomplete(this)"
+            oninput="onMealInput(this)"
+            onblur="onMealBlur(this)"
+            onkeydown="handleAutocompleteKey(event, this)"
+            autocomplete="off">
+          <div class="autocomplete-list" id="ac-${key}"></div>
+        </div>
+        <button class="clear-btn" onclick="clearMeal('${key}')" aria-label="Effacer">&times;</button>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+
+  // Restore focus if user was typing
+  if (focusedKey) {
+    const el = document.querySelector(`[data-key="${focusedKey}"]`);
+    if (el) {
+      el.focus();
+      if (focusedPos !== null) el.setSelectionRange(focusedPos, focusedPos);
+    }
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function saveMealToWeek(key, value) {
+  const week = data.weeks[currentWeek];
+  week.meals[key] = value;
+  saveData();
+}
+
+function addMealToCatalog(value) {
+  if (value && !data.meals.some(m => m.toLowerCase() === value.toLowerCase())) {
+    data.meals.push(value);
+    data.meals.sort((a, b) => a.localeCompare(b, 'fr'));
+    saveData();
+    showToast('Nouveau repas ajouté !');
+  }
+}
+
+function clearMeal(key) {
+  const input = document.querySelector(`[data-key="${key}"]`);
+  if (input) {
+    input.value = '';
+    saveMealToWeek(key, '');
+  }
+}
+
+function changeWeek(dir) {
+  const newIdx = currentWeek + dir;
+  if (newIdx >= 0 && newIdx < data.weeks.length) {
+    currentWeek = newIdx;
+    renderWeek();
+  }
+}
+
+function addNewWeek() {
+  const emptyMeals = {};
+  DAYS.forEach(day => {
+    MEAL_TYPES.forEach(type => {
+      emptyMeals[`${day}-${type}`] = '';
+    });
+  });
+  let startDate;
+  if (data.weeks.length > 0) {
+    const last = new Date(data.weeks[data.weeks.length - 1].startDate);
+    last.setDate(last.getDate() + 7);
+    startDate = last.toISOString();
+  } else {
+    startDate = getMonday(new Date()).toISOString();
+  }
+  data.weeks.push({ startDate, meals: emptyMeals });
+  currentWeek = data.weeks.length - 1;
+  saveData();
+  renderWeek();
+  showToast('Nouvelle semaine ajoutée');
+}
+
+function confirmDeleteWeek() {
+  if (data.weeks.length === 0) return;
+  if (confirm(`Supprimer la semaine ${currentWeek + 1} ?`)) {
+    data.weeks.splice(currentWeek, 1);
+    if (currentWeek >= data.weeks.length) {
+      currentWeek = Math.max(0, data.weeks.length - 1);
+    }
+    saveData();
+    renderWeek();
+    showToast('Semaine supprimée');
+  }
+}
+
+// ===== Autocomplete =====
+let activeAcIndex = -1;
+
+function showAutocomplete(input) {
+  const val = input.value.toLowerCase().trim();
+  const key = input.dataset.key;
+  const list = document.getElementById(`ac-${key}`);
+  const filtered = data.meals.filter(m => m.toLowerCase().includes(val));
+
+  if (filtered.length === 0 || (filtered.length === 1 && filtered[0].toLowerCase() === val)) {
+    list.classList.remove('show');
+    return;
+  }
+
+  activeAcIndex = -1;
+  list.innerHTML = filtered.map((m, i) => {
+    const highlighted = highlightMatch(m, val);
+    return `<div class="autocomplete-item" data-index="${i}"
+      onmousedown="selectAutocomplete('${key}', '${escapeHtml(m)}')">${highlighted}</div>`;
+  }).join('');
+  list.classList.add('show');
+}
+
+function highlightMatch(text, query) {
+  if (!query) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1) return escapeHtml(text);
+  const before = text.slice(0, idx);
+  const match = text.slice(idx, idx + query.length);
+  const after = text.slice(idx + query.length);
+  return `${escapeHtml(before)}<span class="autocomplete-match">${escapeHtml(match)}</span>${escapeHtml(after)}`;
+}
+
+function onMealInput(input) {
+  showAutocomplete(input);
+  saveMealToWeek(input.dataset.key, input.value);
+}
+
+function onMealBlur(input) {
+  setTimeout(() => {
+    const key = input.dataset.key;
+    const list = document.getElementById(`ac-${key}`);
+    list.classList.remove('show');
+  }, 150);
+}
+
+function selectAutocomplete(key, value) {
+  const input = document.querySelector(`[data-key="${key}"]`);
+  const div = document.createElement('div');
+  div.innerHTML = value;
+  const clean = div.textContent;
+  input.value = clean;
+  saveMealToWeek(key, clean);
+  const list = document.getElementById(`ac-${key}`);
+  list.classList.remove('show');
+}
+
+function handleAutocompleteKey(event, input) {
+  if (event.key === 'Enter') {
+    const key = input.dataset.key;
+    const list = document.getElementById(`ac-${key}`);
+    const items = list.querySelectorAll('.autocomplete-item');
+    if (list.classList.contains('show') && items.length > 0 && activeAcIndex >= 0) {
+      event.preventDefault();
+      const selected = items[activeAcIndex].textContent;
+      input.value = selected;
+      saveMealToWeek(key, selected);
+      list.classList.remove('show');
+      input.blur();
+    } else {
+      event.preventDefault();
+      const value = input.value.trim();
+      if (value) {
+        saveMealToWeek(key, value);
+      }
+      list.classList.remove('show');
+      input.blur();
+    }
+    return;
+  }
+
+  const key = input.dataset.key;
+  const list = document.getElementById(`ac-${key}`);
+  const items = list.querySelectorAll('.autocomplete-item');
+  if (!list.classList.contains('show') || items.length === 0) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    activeAcIndex = Math.min(activeAcIndex + 1, items.length - 1);
+    updateAcHighlight(items);
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    activeAcIndex = Math.max(activeAcIndex - 1, 0);
+    updateAcHighlight(items);
+  } else if (event.key === 'Escape') {
+    list.classList.remove('show');
+  }
+}
+
+function updateAcHighlight(items) {
+  items.forEach((item, i) => {
+    item.classList.toggle('highlighted', i === activeAcIndex);
+  });
+  if (activeAcIndex >= 0) items[activeAcIndex].scrollIntoView({ block: 'nearest' });
+}
+
+// ===== Meals Page =====
+function renderMeals() {
+  const searchEl = document.getElementById('mealSearch');
+  const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  const filtered = data.meals.filter(m => m.toLowerCase().includes(search));
+  const list = document.getElementById('mealList');
+  document.getElementById('headerSub').textContent = data.meals.length + ' repas disponibles';
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><p>Aucun repas trouv&eacute;</p></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(m => {
+    const count = countMealUsage(m);
+    return `<li class="meal-list-item">
+      <span class="meal-name">${escapeHtml(m)}</span>
+      ${count > 0 ? `<span class="meal-count">${count}x</span>` : ''}
+      <button class="delete-meal-btn" onclick="deleteMeal('${escapeHtml(m)}')" aria-label="Supprimer">&times;</button>
+    </li>`;
+  }).join('');
+}
+
+function countMealUsage(meal) {
+  let count = 0;
+  data.weeks.forEach(w => {
+    Object.values(w.meals).forEach(v => {
+      if (v.toLowerCase() === meal.toLowerCase()) count++;
+    });
+  });
+  return count;
+}
+
+function filterMeals() { renderMeals(); }
+
+function deleteMeal(name) {
+  const div = document.createElement('div');
+  div.innerHTML = name;
+  const clean = div.textContent;
+  if (confirm(`Supprimer "${clean}" de la liste ?`)) {
+    data.meals = data.meals.filter(m => m !== clean);
+    saveData();
+    renderMeals();
+    showToast('Repas supprimé');
+  }
+}
+
+// ===== Modal =====
+function openAddMealModal() {
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalInput').value = '';
+  document.getElementById('modalTitle').textContent = 'Ajouter un repas';
+  setTimeout(() => document.getElementById('modalInput').focus(), 100);
+}
+
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function saveModal() {
+  const val = document.getElementById('modalInput').value.trim();
+  if (!val) return;
+  if (data.meals.some(m => m.toLowerCase() === val.toLowerCase())) {
+    showToast('Ce repas existe déjà');
+    return;
+  }
+  data.meals.push(val);
+  data.meals.sort((a, b) => a.localeCompare(b, 'fr'));
+  saveData();
+  closeModal();
+  renderMeals();
+  showToast('Repas ajouté !');
+}
+
+// ===== Stats =====
+function renderStats() {
+  const totalMeals = data.meals.length;
+  const totalWeeks = data.weeks.length;
+  let filledSlots = 0;
+  let totalSlots = 0;
+  data.weeks.forEach(w => {
+    Object.values(w.meals).forEach(v => {
+      totalSlots++;
+      if (v) filledSlots++;
+    });
+  });
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${totalWeeks}</div><div class="stat-label">Semaines</div></div>
+    <div class="stat-card"><div class="stat-value">${totalMeals}</div><div class="stat-label">Repas</div></div>
+    <div class="stat-card"><div class="stat-value">${filledSlots}</div><div class="stat-label">Repas planifi&eacute;s</div></div>
+    <div class="stat-card"><div class="stat-value">${totalSlots - filledSlots}</div><div class="stat-label">Cases vides</div></div>
+  `;
+}
+
+// ===== Export / Import =====
+function exportData() {
+  const json = JSON.stringify({ meals: data.meals, weeks: data.weeks }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'table-junot-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Données exportées !');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.meals && imported.weeks) {
+        data.meals = imported.meals;
+        data.weeks = imported.weeks;
+        saveData();
+        renderWeek();
+        showToast('Données importées !');
+      } else {
+        showToast('Fichier invalide');
+      }
+    } catch (err) {
+      showToast('Erreur de lecture');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function confirmReset() {
+  if (confirm('Réinitialiser toutes les données ? Cette action est irréversible.')) {
+    data = buildDefaultData();
+    currentWeek = 0;
+    saveData();
+    renderWeek();
+    showToast('Données réinitialisées');
+  }
+}
+
+// ===== Toast =====
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (toastTimer) clearTimeout(toastTimer);
+  t.classList.remove('show');
+  // Force reflow so the remove/add triggers the transition again
+  void t.offsetWidth;
+  t.textContent = msg;
+  t.classList.add('show');
+  toastTimer = setTimeout(() => { t.classList.remove('show'); toastTimer = null; }, 3000);
+}
+</script>
+</body>
+</html>
