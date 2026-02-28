@@ -360,6 +360,44 @@
       transition: all 0.2s;
     }
     .delete-meal-btn:hover { background: #ffe0e0; color: #ff6b6b; }
+    .meal-list-item { flex-wrap: wrap; }
+    .meal-item-top { display: flex; align-items: center; width: 100%; gap: 8px; }
+    .meal-url-row { display: flex; align-items: center; width: 100%; gap: 6px; margin-top: 8px; }
+    .meal-url-input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-light);
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .meal-url-input:focus { border-color: var(--accent); }
+    .meal-url-icon { color: var(--text-muted); flex-shrink: 0; width: 16px; height: 16px; }
+    .recipe-link-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: #f1f1f1;
+      color: var(--text-muted);
+      cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .recipe-link-btn.has-url {
+      background: var(--accent-light);
+      color: var(--accent);
+      cursor: pointer;
+    }
+    .recipe-link-btn.has-url:active { transform: scale(0.9); }
+    .recipe-link-btn svg { width: 14px; height: 14px; }
 
     /* Modal */
     .modal-overlay {
@@ -458,7 +496,7 @@
 
 <div class="header">
   <h1>La Table Junot</h1>
-  <div class="header-sub" id="headerSub">Planning des repas</div>
+  <div class="header-sub" id="headerSub">An app by Claude &amp; Fru</div>
 </div>
 
 <!-- Planning Page -->
@@ -581,7 +619,7 @@ const DEFAULT_MEALS = [
 ];
 
 function buildDefaultData() {
-  const d = { meals: [...DEFAULT_MEALS], weeks: [] };
+  const d = { meals: [...DEFAULT_MEALS], weeks: [], urls: {} };
   const baseMonday = getMonday(new Date());
   baseMonday.setDate(baseMonday.getDate() - 21);
   d.weeks = [
@@ -594,7 +632,7 @@ function buildDefaultData() {
 }
 
 // Shared data (synced via Firebase)
-let data = { meals: [], weeks: [] };
+let data = { meals: [], weeks: [], urls: {} };
 // Local-only: which week each user is viewing
 let currentWeek = 0;
 let firebaseReady = false;
@@ -603,7 +641,7 @@ let suppressSync = false;
 function saveData() {
   // Write shared data to Firebase (meals + weeks only, not currentWeek)
   suppressSync = true;
-  dbRef.set({ meals: data.meals, weeks: data.weeks }).then(() => {
+  dbRef.set({ meals: data.meals, weeks: data.weeks, urls: data.urls }).then(() => {
     suppressSync = false;
   }).catch(() => { suppressSync = false; });
 }
@@ -615,7 +653,7 @@ dbRef.on('value', (snapshot) => {
   if (!val) {
     // DB is empty — seed it with defaults
     data = buildDefaultData();
-    dbRef.set({ meals: data.meals, weeks: data.weeks });
+    dbRef.set({ meals: data.meals, weeks: data.weeks, urls: data.urls });
     firebaseReady = true;
     renderCurrentView();
     return;
@@ -626,6 +664,7 @@ dbRef.on('value', (snapshot) => {
     startDate: w.startDate || '',
     meals: w.meals || {}
   })) : [];
+  data.urls = val.urls || {};
   // Clamp currentWeek
   if (currentWeek >= data.weeks.length) {
     currentWeek = Math.max(0, data.weeks.length - 1);
@@ -653,7 +692,7 @@ function switchTab(tab) {
   if (tab === 'planning') {
     document.getElementById('pagePlanning').classList.add('active');
     document.getElementById('tabPlanning').classList.add('active');
-    document.getElementById('headerSub').textContent = 'Planning des repas';
+    document.getElementById('headerSub').textContent = 'An app by Claude & Fru';
     renderWeek();
   } else if (tab === 'meals') {
     document.getElementById('pageMeals').classList.add('active');
@@ -709,6 +748,9 @@ function renderWeek() {
             autocomplete="off">
           <div class="autocomplete-list" id="ac-${key}"></div>
         </div>
+        <button class="recipe-link-btn ${val && data.urls[val] ? 'has-url' : ''}" onclick="openRecipeLink('${key}')" aria-label="Recette">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </button>
         <button class="clear-btn" onclick="clearMeal('${key}')" aria-label="Effacer">&times;</button>
       </div>`;
     });
@@ -743,6 +785,14 @@ function addMealToCatalog(value) {
     saveData();
     showToast('Nouveau repas ajouté !');
   }
+}
+
+function openRecipeLink(key) {
+  const input = document.querySelector(`[data-key="${key}"]`);
+  if (!input) return;
+  const meal = input.value.trim();
+  const url = meal && data.urls[meal];
+  if (url) window.open(url, '_blank');
 }
 
 function clearMeal(key) {
@@ -917,10 +967,21 @@ function renderMeals() {
 
   list.innerHTML = filtered.map(m => {
     const count = countMealUsage(m);
+    const url = data.urls[m] || '';
     return `<li class="meal-list-item">
-      <span class="meal-name">${escapeHtml(m)}</span>
-      ${count > 0 ? `<span class="meal-count">${count}x</span>` : ''}
-      <button class="delete-meal-btn" onclick="deleteMeal('${escapeHtml(m)}')" aria-label="Supprimer">&times;</button>
+      <div class="meal-item-top">
+        <span class="meal-name">${escapeHtml(m)}</span>
+        ${count > 0 ? `<span class="meal-count">${count}x</span>` : ''}
+        <button class="delete-meal-btn" onclick="deleteMeal('${escapeHtml(m)}')" aria-label="Supprimer">&times;</button>
+      </div>
+      <div class="meal-url-row">
+        <svg class="meal-url-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        <input class="meal-url-input" type="url" value="${escapeHtml(url)}"
+          placeholder="Lien recette..."
+          data-meal="${escapeHtml(m)}"
+          onchange="saveMealUrl(this)"
+          onblur="saveMealUrl(this)">
+      </div>
     </li>`;
   }).join('');
 }
@@ -943,10 +1004,22 @@ function deleteMeal(name) {
   const clean = div.textContent;
   if (confirm(`Supprimer "${clean}" de la liste ?`)) {
     data.meals = data.meals.filter(m => m !== clean);
+    delete data.urls[clean];
     saveData();
     renderMeals();
     showToast('Repas supprimé');
   }
+}
+
+function saveMealUrl(input) {
+  const meal = input.dataset.meal;
+  const url = input.value.trim();
+  if (url) {
+    data.urls[meal] = url;
+  } else {
+    delete data.urls[meal];
+  }
+  saveData();
 }
 
 // ===== Modal =====
@@ -1000,7 +1073,7 @@ function renderStats() {
 
 // ===== Export / Import =====
 function exportData() {
-  const json = JSON.stringify({ meals: data.meals, weeks: data.weeks }, null, 2);
+  const json = JSON.stringify({ meals: data.meals, weeks: data.weeks, urls: data.urls }, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1021,6 +1094,7 @@ function importData(event) {
       if (imported.meals && imported.weeks) {
         data.meals = imported.meals;
         data.weeks = imported.weeks;
+        data.urls = imported.urls || {};
         saveData();
         renderWeek();
         showToast('Données importées !');
