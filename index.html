@@ -748,9 +748,9 @@ function renderWeek() {
             autocomplete="off">
           <div class="autocomplete-list" id="ac-${key}"></div>
         </div>
-        <button class="recipe-link-btn ${val && data.urls[val] ? 'has-url' : ''}" onclick="openRecipeLink('${key}')" aria-label="Recette">
+        ${val && data.urls[val] ? `<button class="recipe-link-btn has-url" onclick="openRecipeLink('${key}')" aria-label="Recette">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        </button>
+        </button>` : ''}
         <button class="clear-btn" onclick="clearMeal('${key}')" aria-label="Effacer">&times;</button>
       </div>`;
     });
